@@ -623,7 +623,10 @@ contains
          if (present(y)) delta_%y = y
          if (present(z)) delta_%z = z
       endif
-      call self%facet%translate(delta=delta_, recompute_metrix=recompute_metrix)
+      call self%facet%translate(delta=delta_)
+      if (present(recompute_metrix)) then
+         if (recompute_metrix) call self%compute_metrix
+      endif
    endif
    endsubroutine translate
 

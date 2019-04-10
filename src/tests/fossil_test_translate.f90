@@ -14,14 +14,19 @@ type(file_stl_object)    :: file_stl            !< STL file.
 type(surface_stl_object) :: surface             !< STL surface.
 character(999)           :: file_name_stl       !< Input STL file name.
 type(vector_R8P)         :: delta               !< Vectorial delta.
+type(vector_R8P)         :: bmin                !< Vectorial bounding box.
+type(vector_R8P)         :: bmax                !< Vectorial bounding box.
 real(R8P)                :: x, y, z             !< Scalar deltas.
-logical                  :: are_tests_passed(4) !< Result of tests check.
+logical                  :: are_tests_passed(6) !< Result of tests check.
 
 are_tests_passed = .false.
 
 call cli_parse
 call file_stl%load_from_file(facet=surface%facet, file_name=trim(adjustl(file_name_stl)), guess_format=.true.)
 call surface%analize
+
+bmin = surface%bmin
+bmax = surface%bmax
 
 call surface%translate(delta=delta)
 call file_stl%save_into_file(facet=surface%facet, file_name='fossil_test_translate-delta.stl')
@@ -34,6 +39,9 @@ are_tests_passed(3) = nint(surface%distance(point=2 * ex_R8P + 2 * ey_R8P + 0 * 
 call surface%translate(z=z)
 are_tests_passed(4) = nint(surface%distance(point=2 * ex_R8P + 2 * ey_R8P + 2 * ez_R8P)) == 0
 call file_stl%save_into_file(facet=surface%facet, file_name='fossil_test_translate-xyz.stl')
+are_tests_passed(5) = all(nint(bmin - surface%bmin) == 0) .and. all(nint(bmax - surface%bmax) == 0)
+call surface%translate(recompute_metrix=.true.)
+are_tests_passed(6) = all(nint(bmin - surface%bmin) /= 0) .and. all(nint(bmax - surface%bmax) /= 0)
 
 print '(A,L1)', 'Are all tests passed? ', all(are_tests_passed)
 contains
